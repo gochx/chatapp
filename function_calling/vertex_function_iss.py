@@ -123,5 +123,3 @@ response = model.generate_content(
 # Get the model response
 print(response.text)
 
-# Get the model response
-print(response.text)
