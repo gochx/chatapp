@@ -1,13 +1,14 @@
-#pip install streamlit faiss-cpu llama-cpp-python ctransformers chromadb transformers
-
 import ollama
+# Wissensdatenbank (Vektorsearch):
+import chromadb
+
 
 def generate_response(prompt):
-    response = ollama.chat(model="mistral", messages=[{"role": "user", "content": prompt}])
+    response = ollama.chat(model="deepseek-r1:1.5b", messages=[{"role": "user", "content": prompt}])
     return response["message"]["content"]
 
+# Sensitivitätsklassifikation
 
-# Classifier
 from transformers import pipeline
 
 classifier = pipeline("text-classification", model="facebook/roberta-hate-speech-dynabench-r4-target")
@@ -17,12 +18,11 @@ def is_sensitive(text):
     return result["label"] in ["hate_speech", "offensive"]
 
 
-# Wissensdatenbank (Vektorsearch):
-import chromadb
-
+# RAC
 chroma_client = chromadb.PersistentClient(path="db/")
 collection = chroma_client.get_or_create_collection(name="knowledge")
 
+# Neues Wissen hinzufügen
 def add_knowledge(text):
     collection.add(
         documents=[text],
@@ -30,9 +30,13 @@ def add_knowledge(text):
         ids=[str(len(collection.get()["documents"]))]
     )
 
+
 def search_knowledge(query):
     results = collection.query(query_texts=[query], n_results=1)
     return results["documents"][0] if results["documents"] else None
+
+
+
 
 # Frontend mit Streamlit
 import streamlit as st
